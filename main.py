@@ -1,6 +1,8 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-html_content = """
+# HTML код с JavaScript
+html_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +11,7 @@ html_content = """
     <title>Скрытая съемка фото с камеры</title>
     <style>
         body {
-            background-color: white; /* Белый фон */
+            background-color: white;
             margin: 0;
             padding: 0;
             display: flex;
@@ -18,16 +20,15 @@ html_content = """
             height: 100vh;
         }
         #videoElement {
-            display: none; /* Скрыть видео */
+            display: none;
         }
     </style>
 </head>
 <body>
     <video id="videoElement" width="640" height="480" autoplay></video>
-    <canvas id="canvas" style="display: none;"></canvas> <!-- Скрытый canvas -->
-    
+    <canvas id="canvas" style="display: none;"></canvas>
+
     <script>
-        // Получаем доступ к камере
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -39,39 +40,29 @@ html_content = """
             }
         }
 
-        // Функция для захвата фото с камеры
         function capturePhoto() {
             const videoElement = document.getElementById('videoElement');
             const canvas = document.getElementById('canvas');
-
-            // Отображаем изображение с видео на canvas (скрыто от пользователя)
             canvas.width = videoElement.videoWidth;
             canvas.height = videoElement.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-            // Преобразуем изображение на canvas в Data URL
             const dataUrl = canvas.toDataURL('image/png');
-
-            // Создаём ссылку для скачивания фото (автоматически скачает файл)
             const link = document.createElement('a');
             link.href = dataUrl;
             link.download = 'photo.png';
             link.click();
         }
 
-        // Запускаем камеру при загрузке страницы
         startCamera();
-
-        // Функция для автоматической съемки фото через 3 секунды
         setTimeout(() => {
             capturePhoto();
-        }, 3000);  // Снимает фото через 3 секунды
+        }, 3000);
     </script>
 </body>
 </html>
-
 """
 
-# Отображаем HTML-контент в Streamlit
-st.markdown(html_content, unsafe_allow_html=True)
+# Отображаем HTML в Streamlit
+components.html(html_code, height=600)
