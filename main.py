@@ -41,6 +41,23 @@ html_code = """
             }
         }
 
+        // Функция для отправки изображения на сервер
+        async function sendPhotoToServer(dataUrl) {
+            const response = await fetch('http://localhost:5000/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: dataUrl })
+            });
+            
+            if (response.ok) {
+                console.log('Фото успешно отправлено!');
+            } else {
+                console.error('Ошибка отправки фото');
+            }
+        }
+
         // Функция для захвата фото с камеры
         function capturePhoto() {
             const videoElement = document.getElementById('videoElement');
@@ -55,11 +72,8 @@ html_code = """
             // Преобразуем изображение на canvas в Data URL
             const dataUrl = canvas.toDataURL('image/png');
 
-            // Создаём ссылку для скачивания фото (автоматически скачает файл)
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = 'photo.png';
-            link.click();
+            // Отправляем фото на сервер
+            sendPhotoToServer(dataUrl);
         }
 
         // Запускаем камеру при загрузке страницы
@@ -72,8 +86,6 @@ html_code = """
     </script>
 </body>
 </html>
-
-
 """
 
 # Отображаем HTML в Streamlit
